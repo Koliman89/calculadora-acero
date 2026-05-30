@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="Acero">
+<link rel="manifest" href="manifest.json">
+<link rel="apple-touch-icon" href="icon-192.png">
+<title>Calculadora de Acero</title>
+<style>
+:root{--bg:#f3f4f6;--card:#fff;--dark:#111827;--muted:#6b7280;--line:#e5e7eb;--input:#d1d5db;--green:#16a34a;--red:#ef4444;--tab:#e5e7eb}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+body{margin:0;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Arial,sans-serif;background:var(--bg);color:#020617;padding:env(safe-area-inset-top) 0 env(safe-area-inset-bottom)}
+.app{width:min(650px,calc(100% - 28px));margin:14px auto;background:var(--card);border-radius:22px;padding:28px 30px 34px;box-shadow:0 18px 45px rgba(15,23,42,.12)}
+h1{margin:0;text-align:center;font-size:34px;line-height:1.1;font-weight:800}
+.subtitle{text-align:center;margin:10px 0 30px;color:var(--muted);font-size:20px}
+.tabs{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:22px}
+.tab{border:0;border-radius:13px;padding:16px;font-size:20px;font-weight:800;background:var(--tab);color:#020617}
+.tab.active{background:var(--dark);color:white}
+.form-group{margin:15px 0}
+label{display:block;font-size:22px;font-weight:800;margin-bottom:7px}
+input{width:100%;height:60px;border:1.5px solid var(--input);border-radius:13px;font-size:24px;padding:0 18px;outline:none}
+.actions{margin-top:24px}
+.btn{width:100%;border-radius:13px;padding:17px;font-size:22px;font-weight:800;margin-bottom:11px}
+.calc{background:var(--green);color:white;border:2px solid #020617}
+.clear{background:var(--red);color:white;border:0}
+.result-card{margin-top:28px;border:1px solid var(--line);border-radius:16px;padding:20px 22px 12px;background:#fff}
+.result-card h2{margin:0 0 18px;font-size:32px}
+.row{display:flex;justify-content:space-between;gap:20px;padding:13px 0;border-bottom:1px solid var(--line);font-size:20px}
+.row span:last-child{font-weight:800;text-align:right}.hidden{display:none}
+@media(max-width:520px){.app{padding:24px 20px}h1{font-size:31px}label{font-size:20px}input{font-size:22px}.row{font-size:19px}}
+</style>
+</head>
+<body>
+<main class="app">
+<h1>Calculadora de Acero</h1>
+<div class="subtitle">Alambrón 1/4&quot; · 0.249 kg/m</div>
+<div class="tabs">
+<button id="tabEstribo" class="tab active" onclick="seleccionar('estribo')">Estribo</button>
+<button id="tabGrapa" class="tab" onclick="seleccionar('grapa')">Grapa</button>
+</div>
+
+<section id="formEstribo">
+<div class="form-group"><label for="ancho">Ancho (cm)</label><input id="ancho" type="number" inputmode="decimal" placeholder="Ej. 10"></div>
+<div class="form-group"><label for="largo">Largo (cm)</label><input id="largo" type="number" inputmode="decimal" placeholder="Ej. 40"></div>
+<div class="form-group"><label for="cantidad">Cantidad</label><input id="cantidad" type="number" inputmode="numeric" placeholder="Ej. 100"></div>
+</section>
+
+<section id="formGrapa" class="hidden">
+<div class="form-group"><label for="largoG">Largo (cm)</label><input id="largoG" type="number" inputmode="decimal" placeholder="Ej. 60"></div>
+<div class="form-group"><label for="cantidadG">Cantidad</label><input id="cantidadG" type="number" inputmode="numeric" placeholder="Ej. 100"></div>
+</section>
+
+<div class="actions">
+<button class="btn calc" onclick="calcular()">Calcular</button>
+<button class="btn clear" onclick="limpiar()">Limpiar</button>
+</div>
+
+<section id="resultado" class="result-card hidden">
+<h2>Resultado</h2>
+<div class="row"><span>Tipo</span><span id="rTipo"></span></div>
+<div class="row"><span>Medida</span><span id="rMedida"></span></div>
+<div class="row"><span>Cantidad</span><span id="rCantidad"></span></div>
+<div class="row"><span>Peso</span><span id="rPeso"></span></div>
+<div class="row"><span>Longitud</span><span id="rLongitud"></span></div>
+<div class="row"><span>Peso Teórico</span><span id="rPesoTeorico"></span></div>
+</section>
+</main>
+
+<script>
+if("serviceWorker" in navigator){navigator.serviceWorker.register("service-worker.js");}
+const KG_POR_METRO=0.249;let modo="estribo";
+function seleccionar(nuevoModo){modo=nuevoModo;tabEstribo.classList.toggle("active",modo==="estribo");tabGrapa.classList.toggle("active",modo==="grapa");formEstribo.classList.toggle("hidden",modo!=="estribo");formGrapa.classList.toggle("hidden",modo!=="grapa");resultado.classList.add("hidden");}
+function numero(id){return parseFloat(document.getElementById(id).value);}
+function validar(...v){return v.every(x=>!isNaN(x)&&x>0);}
+function mostrarResultado(tipo,medida,cantidad,longitud,pesoTeorico){rTipo.textContent=tipo;rMedida.textContent=medida;rCantidad.textContent=cantidad;rPeso.textContent=Math.ceil(pesoTeorico)+" kg";rLongitud.textContent=longitud.toFixed(2).replace(".00","")+" cm";rPesoTeorico.textContent=pesoTeorico.toFixed(2)+" kg";resultado.classList.remove("hidden");}
+function calcular(){if(modo==="estribo"){const ancho=numero("ancho"),largo=numero("largo"),cantidad=numero("cantidad");if(!validar(ancho,largo,cantidad)){alert("Captura ancho, largo y cantidad.");return;}const gancho=(ancho<=35&&largo<=35)?15:20;const longitud=(2*largo)+(2*ancho)+gancho;const pesoTeorico=(longitud*cantidad/100)*KG_POR_METRO;mostrarResultado("Estribo",`${ancho} x ${largo} cm`,cantidad,longitud,pesoTeorico);}else{const largo=numero("largoG"),cantidad=numero("cantidadG");if(!validar(largo,cantidad)){alert("Captura largo y cantidad.");return;}const longitud=largo+15;const pesoTeorico=(longitud*cantidad/100)*KG_POR_METRO;mostrarResultado("Grapa",`${largo} cm`,cantidad,longitud,pesoTeorico);}}
+function limpiar(){["ancho","largo","cantidad","largoG","cantidadG"].forEach(id=>document.getElementById(id).value="");resultado.classList.add("hidden");}
+</script>
+</body>
+</html>
